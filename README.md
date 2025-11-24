@@ -7,9 +7,12 @@ La gestion des erreurs est souvent le maillon manquant dans la conception des ap
 - Poétesse et bachelière es mathématiques devenue cuisinière deveneue développeuse
 - Dev Front-End (React et TypeScript) à la Banque Nationale du Canada
 
+![LinkedIn](./linkedin-qr.png)
+
 ## Erreurs inattendues (Unexpected Errors)
 
 ![I'm sorry](https://images5.fanpop.com/image/photos/26400000/Love-means-never-having-to-say-you-re-sorry-love-story-the-movie-26452763-500-230.gif)
+
 
 Un état dans lequel le programme ne devrait jamais se retrouver; l'erreur ne peut réellement se réparer qu'en modifiant le programme.
 
@@ -254,3 +257,7 @@ libraries
 - icones
 
 Plutôt lié au UX et au design. Va souvent être lié à une erreur attendue ou une erreur inattendue dans le code, mais pas nécessairement.
+
+## Give Feedback
+
+![LinkedIn](./linkedin-qr.png)
