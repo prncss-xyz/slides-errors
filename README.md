@@ -13,7 +13,6 @@ La gestion des erreurs est souvent le maillon manquant dans la conception des ap
 
 ![I'm sorry](https://images5.fanpop.com/image/photos/26400000/Love-means-never-having-to-say-you-re-sorry-love-story-the-movie-26452763-500-230.gif)
 
-
 Un état dans lequel le programme ne devrait jamais se retrouver; l'erreur ne peut réellement se réparer qu'en modifiant le programme.
 
 ## Instruction d'assertion (Code Assertion)
@@ -122,6 +121,7 @@ isoAssert(x > y, "x should be greater than y");
 ## Erreurs attendues (Expected Errors)
 
 ![Love means never having to say you're sorry.](https://media.tenor.com/EyurLM2pd6YAAAAC/love-story-sorry.gif)
+
 Une erreur attendue est une condition nécessaire pour réaliser une opération, qui est testée à même le code de l'opération.
 
 Considérons cette interface (fictive):
