@@ -10,7 +10,8 @@
 
 ## Résumé
 
-Je vais parler d'erreurs parce que c'est une notion qu'on inclue pas assez dans la conception logicielle à divers niveau, peut-être par absence d'une notion claire de ce qu'est une erreur.
+- il m'est souvent arriver d'essayer de faire de la gestion d'erreurs sans intention réelle
+- vécu des discussion qui tournaient en rond car notion faussement évidente
 
 Je vais 3 notions distinctes d'erreurs.
 
@@ -20,13 +21,17 @@ Je vais 3 notions distinctes d'erreurs.
 
 Une erreure inattendue survient lorqu'on détecte un état dans lequel un programme ne devrait pas se retrouver. Une erreure inattendue doit être réparée en modifiant le programme.
 
-Typiquement une expection.
+Typiquement se présente comme une expection.
 
-Le moteur JavaScript peu en émettre - `Uncaught TypeError: f is not a function` - `Uncaught SyntaxError: Invalid or unexpected token`
+Le moteur JavaScript peu en émettre 
+
+- `f()` => `Uncaught TypeError: f is not a function` 
+- `x.a` => `Uncaught SyntaxError: Invalid or unexpected token`
 
 ## Instruction d'assertion (Code Assertion)
 
-Quand on code, à un certain moment on a une propriété en tête qu'on pense être vraie, sur laquelle on compte pour la suite du programme. On pourrait en faire un commentaire. On en fait pluôt une assertion.
+- une propriété qu'on pense être vraie
+- commentaire vs assertion
 
 ```typescript
 if (x > y) throw new Error("x should be greater than y");
@@ -36,19 +41,20 @@ if (x > y) throw new Error("x should be greater than y");
 - langage standard
 - plus grande confiance
 
-En l'absence d'assertion un état abhérent va éventuellement mener à un comportement imprévu
+En l'absence d'assertion :
 
-- intermittant, difficile à reproduire
+- un état abhérent va éventuellement mener à un comportement imprévu
+- bug intermittant, difficile à reproduire
 - distance entre la cause et l'effet
 - risque de sécurité
 
 ### Quoi faire avec une erreur inattendue
 
-- monitoring
-- planter l'application ou une partie de l'application (éventuellement la repartir)
+- planter l'application
 - vs essayer de corriger l'erreur et poursuivre
   - mettre des ressources sur quelquechose qui apporte peu de valeur et va causer pleins d'autres erreurs en aval
-- si il y a des efforts à mettre (ça dépend de l'application): compartimenter l'application en petites morceaux qui peuvent être redémarrés (cf. erlang, react: error boundaries)
+- monitoring
+- compartimenter (react error boundary), repartir la composante (erlang)
 
 ## Instruction d'assertion (typed edition)
 
@@ -79,12 +85,11 @@ isoAssert(x > y, "x should be greater than y");
 ## Pourquoi on a des erreurs inattendues
 
 - le système de type a ses limites
-  - typescript: nombres entiers
-  - les branded types permettent d'annoter qu'un nombre est entiers, mais ne permettent pas de prouver que la somme de deux entiers est aussi un entier
-- il n'est pas toujours souhaitable de pousser le système de types à ses limites
+  - typescript: la somme de deux nombre entiers est un nombre entier
+- pas souhaitable de pousser le système de types à ses limites
   - coût
   - maintenabilité, lisibilité
-- dans des systèmes très critiques, on utilise un assistant de preuve (Lean, Coq) pour prouver des propriétées du code
+- dans des systèmes très critiques, on utilise un assistant de preuve (Lean, Coq) pour prouver des propriétées du code (pas pour les mortels)
 
 ## Comment les éviter
 
@@ -100,15 +105,16 @@ isoAssert(x > y, "x should be greater than y");
 
 ```typescript
 [
-  { url: "/a", handler: handleA },
-  { url: "/b", handler: handleB },
+  { url: "/a", handler: handlerA },
+  { url: "/b", handler: handlerB },
+  { url: "/a", handler: handlerC },
 ];
 {
   '/a': {
-    handler: handleA,
+    handler: handlerA,
   }
   '/b': {
-    handler: handleB,
+    handler: handlerB,
   }
 }
 ```
@@ -121,11 +127,11 @@ Pas toujours possibles:
 ```typescript
 {
     a: {
-        id: 'a'
+        id: 'a',
         value: 'toto',
     },
     b: {
-        id: 'b'
+        id: 'b',
         value: 'kiki',
     }
 }
@@ -169,6 +175,8 @@ if (index >= 0) {
 
 En conséquence, il est nécessaire de représenter d'une manière distincte les valeurs de succès et les valeurs d'erreur (sans risquer de les confondre).
 
+La représentation d'une d'erreur
+
 ### Étude de cas, identifier les requis potentiel d'une gestion d'erreur
 
 En tant qu'utilisateur, je veux afficher une image d'un chat qui n'est accessible que si je suis connecté et que j'ai les droits d'accès.
@@ -177,11 +185,11 @@ En tant qu'utilisateur, je veux afficher une image d'un chat qui n'est accessibl
 
 - erreur de réseau
 - erreur de serveur (500)
-- je ne suis pas connecté
+- je ne suis pas connecté (loggué)
 - je n'ai pas les droits d'accès
 - l'image n'existe pas
 
-S'il y a une erreur de réseau, je veux relancer la requête. S'il y a un autre type d'erreur, je veux afficher un message approprié.
+S'il y a une erreur de réseau, je veux relancer la requête. S'il y a un autre type d'erreur, je veux afficher un message qui nous reseigne.
 
 **Imbrication**: on veut être capable de représenter de manière distincte:
 
@@ -212,15 +220,16 @@ Ces requis ne sont pas toujours nécessaires.
 
 ## Différentes représentations des erreurs
 
-### L'erreur comme une valeur de plus
+### L'erreur comme une autre valeur
 
 - valeur impossible: `findIndex`, -1
+    - bonus: les états contradictoires impossible à représenter
 - valeur spéciale: `undefined` , `null`, `NaN`
 - instances de la classe erreur
+    - distinguer les types d'erreur
+    - ajouter de l'infromation arbitraire
 
-- les valeurs impossibles sont aussi une stratégie pour rendre les états contradictoires impossible à représenter
 - non-sérialisable: la classe d'erreur et `undefined` ne sont pas sérialisables
-- les instances de la classe d'erreur permettent de distinguer autant de types d'erreur que l'on veut et y ajouter de l'infromation arbitraire
 - aucune de ces solution ne permet de représenter un succès qui contient une erreur
 
 La manière la plus raisonnable de les combiner en séquence est simplement extraire une fonction.
@@ -235,7 +244,7 @@ function sequence(a) {
 }
 ```
 
-Non typés:
+Control flow non-typés:
     - exceptions
     - valeur de rejet des promesses
 
@@ -255,10 +264,10 @@ const e = {
 }
 ```
 
-- très clair
+- très clair (le code est sa propre documentation)
 - on peut **imbriquer** une erreur dans un succès
 - les types gardent la trace des erreurs potentielles, peut porter de l'information arbitraire
-- **sérialisable** ou non (selon l'implémentation)
+- **sérialisable** (du moment qu'on ne construit pas l'objet avec une classe)
 
 ```typescript
 function sequence(a) {
@@ -277,7 +286,8 @@ function sequence(a) {
 - couleur rouge
 - icones
 
-Plutôt lié au UX et au design. Va souvent être lié à une erreur attendue ou une erreur inattendue dans le code, mais pas nécessairement.
+- Plutôt lié au UX et au design.
+- Va souvent être lié à une erreur attendue ou une erreur inattendue dans le code, mais pas nécessairement.
 
 ## Give Feedback
 
