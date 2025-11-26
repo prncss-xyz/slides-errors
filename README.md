@@ -1,48 +1,97 @@
 # Quitter le chemin du bonheur: toutes ces choses que nous appellons « erreur »
 
-La gestion des erreurs est souvent le maillon manquant dans la conception des applications. Nous plongerons en profondeur dans les différents concepts qui peuvent se cacher derrière la notion d’erreur et leurs implémentations les plus courantes. Des exemples concrets seront tirés de Node, React et Tanstack Query.
-
 ## Qui suis-je
 
+- Juliette Lamarche
 - Poétesse et bachelière es mathématiques devenue cuisinière deveneue développeuse
-- Dev Front-End (React et TypeScript) à la Banque Nationale du Canada
+- Dev Front-End (React et TypeScript) à la Banque Nationale du Canada via Go Rock IT.
 
 ![LinkedIn](./linkedin-qr.png)
+
+## Résumé
+
+Je vais parler d'erreurs parce que c'est une notion qu'on inclue pas assez dans la conception logicielle à divers niveau, peut-être par absence d'une notion claire de ce qu'est une erreur.
+
+Je vais 3 notions distinctes d'erreurs.
 
 ## Erreurs inattendues (Unexpected Errors)
 
 ![I'm sorry](https://images5.fanpop.com/image/photos/26400000/Love-means-never-having-to-say-you-re-sorry-love-story-the-movie-26452763-500-230.gif)
 
-Un état dans lequel le programme ne devrait jamais se retrouver; l'erreur ne peut réellement se réparer qu'en modifiant le programme.
+Une erreure inattendue survient lorqu'on détecte un état dans lequel un programme ne devrait pas se retrouver. Une erreure inattendue doit être réparée en modifiant le programme.
+
+Typiquement une expection.
+
+Le moteur JavaScript peu en émettre - `Uncaught TypeError: f is not a function` - `Uncaught SyntaxError: Invalid or unexpected token`
 
 ## Instruction d'assertion (Code Assertion)
+
+Quand on code, à un certain moment on a une propriété en tête qu'on pense être vraie, sur laquelle on compte pour la suite du programme. On pourrait en faire un commentaire. On en fait pluôt une assertion.
 
 ```typescript
 if (x > y) throw new Error("x should be greater than y");
 ```
 
-Quand on raisonne sur du code, exprimer les propriétés du code sous forme d'assertions plutôt que de commentaires.
+- mieux maintenu
+- langage standard
+- plus grande confiance
+
+En l'absence d'assertion un état abhérent va éventuellement mener à un comportement imprévu
+
+- intermittant, difficile à reproduire
+- distance entre la cause et l'effet
+- risque de sécurité
+
+### Quoi faire avec une erreur inattendue
+
+- monitoring
+- planter l'application ou une partie de l'application (éventuellement la repartir)
+- vs essayer de corriger l'erreur et poursuivre
+  - mettre des ressources sur quelquechose qui apporte peu de valeur et va causer pleins d'autres erreurs en aval
+- si il y a des efforts à mettre (ça dépend de l'application): compartimenter l'application en petites morceaux qui peuvent être redémarrés (cf. erlang, react: error boundaries)
+
+## Instruction d'assertion (typed edition)
+
+- une assertion remplace avantageusement un type cast
 
 ```typescript
-if (z === undefined) throw new Error("z should be defined");
 // z!
+if (z == undefined) throw new Error("z should be defined");
 // z as number
+if (typeof z !== "number") throw new Error("z should be a number");
 ```
 
 Quand c'est possible, préférer une assertion à un cast
 
-- coût négligeable
-- mieux maintenue (changement de nom, erreurs de types)
-- plus grande confiance
+## Utilitaire
 
-Les assertions simplifient le diagnostic d'une erreur:
+```typescript
+export function isoAssertion(
+  condition: boolean,
+  message?: string,
+): asserts condition {
+  if (condition === false) throw new Error(message ?? "assertion failed");
+}
 
-- Plus on repère un état abhérant tôt, plus c'est facile de trouver la cause de l'erreur.
-- Un bug lié à un comportement anormal est plus difficile à reproduire et à comprendre qu'une execption causée par un état abhérant.
+isoAssert(x > y, "x should be greater than y");
+```
+
+## Pourquoi on a des erreurs inattendues
+
+- le système de type a ses limites
+  - typescript: nombres entiers
+  - les branded types permettent d'annoter qu'un nombre est entiers, mais ne permettent pas de prouver que la somme de deux entiers est aussi un entier
+- il n'est pas toujours souhaitable de pousser le système de types à ses limites
+  - coût
+  - maintenabilité, lisibilité
+- dans des systèmes très critiques, on utilise un assistant de preuve (Lean, Coq) pour prouver des propriétées du code
 
 ## Comment les éviter
 
-### Rendre les états impossibles irreprésentables
+- les assertions sont parfois le symptôme d'une mauvaise modélisation
+- chercher un état imposssible est une manière de trouver et communiquer les lacunes d'une modélisation
+
+### Rendre irreprésentable les états impossibles
 
 ```typescript
 { loading: true: error: true }
@@ -51,16 +100,15 @@ Les assertions simplifient le diagnostic d'une erreur:
 
 ```typescript
 [
-  { key: "a", value: "toto" },
-  { key: "b", value: "popo" },
-  { key: "c", value: "kiki" },
+  { url: "/a", handler: handleA },
+  { url: "/b", handler: handleB },
 ];
 {
-  a: {
-    value: "toto";
+  '/a': {
+    handler: handleA,
   }
-  b: {
-    value: "kiki";
+  '/b': {
+    handler: handleB,
   }
 }
 ```
@@ -81,48 +129,17 @@ Pas toujours possibles:
         value: 'kiki',
     }
 }
-
 ```
-
-## D'autres raisons d'avoir des erreurs inattendues
-
-- le système de types a ses limites
-  - typescript: nombres entiers
-  - les branded types permettent d'annoter qu'un nombre est entiers, mais ne permettent pas de prouver que la somme de deux entiers est aussi un entier
-  - dans des systèmes très critiques, on utilise un assistant de preuve (Lean, Coq) pour prouver des propriétées du code
-- il n'est pas toujours souhaitable de pousser le système de types à ses limites
-  - tests, application, libraires
 
 ## Erreurs concrètes que j'ai attrapé
 
 - une fonction devait avoir la même référence à deux endroits, j'employais une dépendance ordinaire au lieu d'une peer dependancy
 
-## Quoi faire avec une erreur inattendue
-
-- monitoring
-- planter l'application ou une partie de l'application (éventuellement la repartir)
-- vs essayer de corriger l'erreur et poursuivre
-  - mettre des ressources sur quelquechose qui apporte peu de valeur et va causer pleins d'autres erreurs en aval
-- si il y a des efforts à mettre (ça dépend de l'application): compartimenter l'application en petites morceaux qui peuvent être redémarrés (cf. erlang, react: error boundaries)
-
-## Incitatif
-
-```typescript
-export function isoAssertion(
-  condition: unknown,
-  message?: string,
-): asserts condition {
-  if (condition === false) throw new Error(message ?? "assertion failed");
-}
-
-isoAssert(x > y, "x should be greater than y");
-```
-
 ## Erreurs attendues (Expected Errors)
 
 ![Love means never having to say you're sorry.](https://media.tenor.com/EyurLM2pd6YAAAAC/love-story-sorry.gif)
 
-Une erreur attendue est une condition nécessaire pour réaliser une opération, qui est testée à même le code de l'opération.
+Une erreur attendue est l'échec d'une condition nécessaire pour réaliser une opération. La condition est testée à même cette opération, et est présentée à la place du résultat de l'opération.
 
 Considérons cette interface (fictive):
 
@@ -168,12 +185,20 @@ S'il y a une erreur de réseau, je veux relancer la requête. S'il y a un autre 
 
 **Imbrication**: on veut être capable de représenter de manière distincte:
 
-- une erreur (de premier niveau)
-- un succès à l'intérieur d'une erreur
+```mermaid
+graph TD;
+    Requète-->Erreur réseau;
+    Requète-->Succès réseau;
+    Succès réseau-->Erreur serveur;
+    Succès réseau-->Erreur non-connecté;
+    Succès réseau-->Erreur non-accès;
+    Succès réseau-->Erreur image inexistante;
+    Succès réseau-->Succès image;
+```
 
 Du point de vue de la requête html, toutes les erreurs autre que l'erreur réseau sont un succès.
 
-Côté serveur, on a une séquence d'acction donc chacune repose sur la précédente. On veut interrombre la séquence à la première erreur.
+Côté serveur, on a une séquence d'actions où chacune repose sur la précédente. On veut interrombre la séquence à la première erreur.
 
 **Séquence**: On veut être capable de combiner une séquence d'opération avec une potentiel d'erreur sans avoir à gérer manuellement l'échec d'une erreur précédente à chaque fois.
 
@@ -183,9 +208,9 @@ a?.b?.c; // optional chaining
 
 **Information**: On veut garder une identité distincte pour chaque erreur, et possiblement lui associer d'autre information (par exemble la collection dont fait partie le gif auquel je n'ai pas accès)
 
-**Exhaustivité**: On veut être capable de garantir par le typages que tous les types d'erreurs possibles sont gérés.
+**Exhaustivité**: On veut être capable de garantir par les types que tous les sortes d'erreurs possibles sont gérés.
 
-**Sérialisabilité**: On veut être capable d'envoyer l'erreur serveur au client sans gestion manuelle.
+**Sérialisabilité**: On veut être capable d'envoyer l'erreur serveur au client sans transformation manuelle.
 
 Ces requis ne sont pas toujours nécessaires.
 
