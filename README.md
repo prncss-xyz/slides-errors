@@ -175,7 +175,7 @@ if (index >= 0) {
 }
 ```
 
--R eprésentation distincte des valeurs de succès et les valeurs d'erreur
+- Représentation distincte des valeurs de succès et les valeurs d'erreur
 
 ### Étude de cas, identifier les requis potentiel d'une gestion d'erreur
 
@@ -209,7 +209,7 @@ graph TD;
     C-->H[Succès image];
 ```
 
-Côté serveur, on a une séquence d'actions qui s'interrompt au premier écher.
+Côté serveur, on a une séquence d'actions qui s'interrompt au premier échec.
 
 **Séquence**: On veut être capable de combiner une séquence d'opération avec une potentiel d'erreur sans avoir à gérer manuellement l'échec d'une erreur précédente à chaque fois.
 
@@ -233,7 +233,8 @@ Ces requis ne sont pas toujours nécessaires.
 - valeur spéciale: `undefined` , `null`, `NaN`
 - instances de la classe erreur
   - distinguer les types d'erreur
-  - ajouter de l'infromation arbitraire
+  - ajouter de l'infromation qualitative
+    - ex.: le nom du fichier manquant
 
 - sérializable: null 
 - non-sérialisable: la classe d'erreur et `undefined`
@@ -298,6 +299,9 @@ function sequence(a) {
 }
 ```
 
+- type du résultat:
+    - chaque type d'erreur, le type du succès
+    - possible de garantir par le typage que toutes les erreurs ont étées gérées
 - zod safeParse
 
 
