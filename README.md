@@ -23,9 +23,9 @@ Une erreure inattendue survient lorqu'on détecte un état dans lequel un progra
 
 Typiquement se présente comme une expection.
 
-Le moteur JavaScript peu en émettre 
+Le moteur JavaScript peu en émettre
 
-- `f()` => `Uncaught TypeError: f is not a function` 
+- `f()` => `Uncaught TypeError: f is not a function`
 - `x.a` => `Uncaught SyntaxError: Invalid or unexpected token`
 
 ## Instruction d'assertion (Code Assertion)
@@ -34,7 +34,7 @@ Le moteur JavaScript peu en émettre
 - commentaire vs assertion
 
 ```typescript
-if (x > y) throw new Error("x should be greater than y");
+if (x > y) throw new Error('x should be greater than y')
 ```
 
 - mieux maintenu
@@ -51,8 +51,10 @@ En l'absence d'assertion :
 ### Quoi faire avec une erreur inattendue
 
 - planter l'application
-- vs essayer de corriger l'erreur et poursuivre
+- vs modifier le code pour corriger ou accepter la donnée abhérente
+  - complexité peut se propager en amont
   - mettre des ressources sur quelquechose qui apporte peu de valeur et va causer pleins d'autres erreurs en aval
+  - fail fast
 - monitoring
 - compartimenter (react error boundary), repartir la composante (erlang)
 
@@ -62,9 +64,9 @@ En l'absence d'assertion :
 
 ```typescript
 // z!
-if (z == undefined) throw new Error("z should be defined");
+if (z == undefined) throw new Error('z should be defined')
 // z as number
-if (typeof z !== "number") throw new Error("z should be a number");
+if (typeof z !== 'number') throw new Error('z should be a number')
 ```
 
 Quand c'est possible, préférer une assertion à un cast
@@ -73,13 +75,13 @@ Quand c'est possible, préférer une assertion à un cast
 
 ```typescript
 export function isoAssertion(
-  condition: boolean,
-  message?: string,
+	condition: boolean,
+	message?: string,
 ): asserts condition {
-  if (condition === false) throw new Error(message ?? "assertion failed");
+	if (condition === false) throw new Error(message ?? 'assertion failed')
 }
 
-isoAssert(x > y, "x should be greater than y");
+isoAssert(x > y, 'x should be greater than y')
 ```
 
 ## Pourquoi on a des erreurs inattendues
@@ -150,12 +152,12 @@ Une erreur attendue est l'échec d'une condition nécessaire pour réaliser une 
 Considérons cette interface (fictive):
 
 ```typescript
-const str = "ajfskla;;fjklsd;afjkl;dsjfkl;sd";
-const target = "fk";
+const str = 'ajfskla;;fjklsd;afjkl;dsjfkl;sd'
+const target = 'fk'
 
 if (str.has(target)) {
-  const index = str.findIndex(target);
-  // ...
+	const index = str.findIndex(target)
+	// ...
 }
 ```
 
@@ -167,15 +169,13 @@ Cette interface serait:
 Donc on préfère:
 
 ```typescript
-const index = str.findIndex(target);
+const index = str.findIndex(target)
 if (index >= 0) {
-  // ...
+	// ...
 }
 ```
 
-En conséquence, il est nécessaire de représenter d'une manière distincte les valeurs de succès et les valeurs d'erreur (sans risquer de les confondre).
-
-La représentation d'une d'erreur
+-R eprésentation distincte des valeurs de succès et les valeurs d'erreur
 
 ### Étude de cas, identifier les requis potentiel d'une gestion d'erreur
 
@@ -189,9 +189,14 @@ En tant qu'utilisateur, je veux afficher une image d'un chat qui n'est accessibl
 - je n'ai pas les droits d'accès
 - l'image n'existe pas
 
-S'il y a une erreur de réseau, je veux relancer la requête. S'il y a un autre type d'erreur, je veux afficher un message qui nous reseigne.
+Comportements
 
-**Imbrication**: on veut être capable de représenter de manière distincte:
+- erreur réseau: relancer
+- autre erreur: afficher un message significatif
+
+Du point de vue de la requête réseau, une erreur comme l'absence d'image est un succès.
+
+**Imbrication**: Représenter un succès qui contient une erreur ou un succès.
 
 ```mermaid
 graph TD;
@@ -204,9 +209,7 @@ graph TD;
     C-->H[Succès image];
 ```
 
-Du point de vue de la requête html, toutes les erreurs autre que l'erreur réseau sont un succès.
-
-Côté serveur, on a une séquence d'actions où chacune repose sur la précédente. On veut interrombre la séquence à la première erreur.
+Côté serveur, on a une séquence d'actions qui s'interrompt au premier écher.
 
 **Séquence**: On veut être capable de combiner une séquence d'opération avec une potentiel d'erreur sans avoir à gérer manuellement l'échec d'une erreur précédente à chaque fois.
 
@@ -223,32 +226,37 @@ Ces requis ne sont pas toujours nécessaires.
 ### L'erreur comme une autre valeur
 
 - valeur impossible: `findIndex`, -1
-    - bonus: les états contradictoires impossible à représenter
+  - bonus: rend des états abhérents impossibles à représenter
+  - courrant en C ou Go (décrit directement la représentation en mémoire)
+  - typage le plus simple
+  - signification non standard
 - valeur spéciale: `undefined` , `null`, `NaN`
 - instances de la classe erreur
-    - distinguer les types d'erreur
-    - ajouter de l'infromation arbitraire
+  - distinguer les types d'erreur
+  - ajouter de l'infromation arbitraire
 
-- non-sérialisable: la classe d'erreur et `undefined` ne sont pas sérialisables
-- aucune de ces solution ne permet de représenter un succès qui contient une erreur
+- sérializable: null 
+- non-sérialisable: la classe d'erreur et `undefined`
+- imbrication (succès dans une erreur): aucune
 
-La manière la plus raisonnable de les combiner en séquence est simplement extraire une fonction.
+Séquence: extraire dans une fonction auxilière
 
 ```typescript
 function sequence(a) {
-  const b = f1(a);
-  if (b === undefined) return undefined;
-  const c = f2(b);
-  if (c === undefined) return undefined;
-  return f3(c);
+	const b = f1(a)
+	if (b === undefined) return undefined
+	const c = f2(b)
+	if (c === undefined) return undefined
+	return f3(c)
 }
 ```
 
 Control flow non-typés:
-    - exceptions
-    - valeur de rejet des promesses
 
-Un objet de classe erreur peut être passé comme une valeur.
+- exceptions
+- valeur de rejet des promesses
+
+Un objet de la classe erreur peut être passé comme une valeur.
 
 ## Result type (Either Modad)
 
@@ -266,27 +274,44 @@ const e = {
 
 - très clair (le code est sa propre documentation)
 - on peut **imbriquer** une erreur dans un succès
-- les types gardent la trace des erreurs potentielles, peut porter de l'information arbitraire
+
+```typescript
+const se = {
+	type: 'success',
+	value: {
+		type: 'error',
+		message: 'not happy, but deep',
+	},
+}
+```
+
+- types d'erreurs illimités, information arbitraire
 - **sérialisable** (du moment qu'on ne construit pas l'objet avec une classe)
 
 ```typescript
 function sequence(a) {
-  const b = f1(a);
-  if (b.type === "error") return b;
-  const c = f2(b.value); // on doit déballer le succès
-  if (c.type === "error") return c;
-  return f3(c.value);
+	const b = f1(a)
+	if (b.type === 'error') return b
+	const c = f2(b.value) // on doit déballer le succès
+	if (c.type === 'error') return c
+	return f3(c.value)
 }
 ```
 
 - zod safeParse
 
+
+```typescript
+either(a).chain(f1).chain(f2).chain(f3)
+```
+
 ## Erreur comme connotation
 
 - couleur rouge
-- icones
+- icones :x: :poop:
 
-- Plutôt lié au UX et au design.
+- Lié au UX et au design
+- Erreur technique vs métier
 - Va souvent être lié à une erreur attendue ou une erreur inattendue dans le code, mais pas nécessairement.
 
 ## Give Feedback
