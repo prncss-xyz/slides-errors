@@ -30,7 +30,6 @@ Typiquement se présente comme une exception.
 Le moteur JavaScript peu en émettre
 
 - `f()` => `Uncaught TypeError: f is not a function`
-- `x.a` => `Uncaught SyntaxError: Invalid or unexpected token`
 
 ## Instruction d'assertion (Code Assertion)
 
@@ -52,10 +51,14 @@ En l'absence d'assertion :
 - distance entre la cause et l'effet
 - risque de sécurité
 
+## Assertion vs test
+
+- l'assertion a une complexité et minime et un impact de performance négligeable: on vérifie ce qu'on a sous la main
+
 ### Quoi faire avec une erreur inattendue
 
 - planter l'application
-- vs modifier le code pour corriger ou accepter la donnée abberrante
+- vs avoir un code plus complexe pour corriger ou accepter la donnée aberrantes
   - complexité peut se propager en amont
   - mettre des ressources sur quelque chose qui apporte peu de valeur et va causer pleins d'autres erreurs en aval
   - fail fast
@@ -75,6 +78,27 @@ if (typeof z !== 'number') throw new Error('z should be a number')
 
 Quand c'est possible, préférer une assertion à un cast
 
+## Hot Take
+
+- un test augmente notre confiance parce que:
+  - il utilise quelque chose de simple pour valider quelque chose de compliqué,
+  - ou parfois en comparant de manières significativement diffé
+
+```typescript
+function f(x: number | undefined) {
+	if (x === undefined) throw new Error('x should be defined')
+}
+
+test('f', () => {
+    expect(() => f(undefined)).toThrowError('x should be defined')
+
+}
+```
+
+Le code de l'assertion peut même ne pas être atteingnable.
+
+Au besoin on peut mettre une instruction pour exclure de la couverture.
+
 ## Utilitaire
 
 ```typescript
@@ -88,6 +112,8 @@ export function isoAssertion(
 isoAssert(x > y, 'x should be greater than y')
 ```
 
+A l'avantage de ne pas créer un code path.
+
 ## Pourquoi on a des erreurs inattendues
 
 - le système de type a ses limites
@@ -96,6 +122,19 @@ isoAssert(x > y, 'x should be greater than y')
   - coût
   - maintenabilité, lisibilité
 - dans des systèmes très critiques, on utilise un assistant de preuve (Lean, Coq) pour prouver des propriétés du code (pas pour les mortels)
+- une mauvaise organisation du code peut faire perdre de l'information
+
+```typescript
+type Y = { a?: number }
+
+function x(y: Y) {
+	const a = y.a
+	if (a !== undefined) return f(y)
+	// ...
+}
+```
+
+(bien sûr quand ça arrive en pratique, c'est beaucoup plus complexe, mais l'idée est là)
 
 ## Comment les éviter
 
@@ -107,6 +146,11 @@ isoAssert(x > y, 'x should be greater than y')
 ```typescript
 { loading: true: error: true }
 { status: 'loading' } // 'loading' | 'error' | 'succes'
+```
+
+```typescript
+const { isPending, isError, isSuccess } = useQuery()
+const { status } = useQuery()
 ```
 
 ```typescript
@@ -309,6 +353,18 @@ function sequence(a) {
 - zod safeParse
 
 ```typescript
+function of(a) {
+	return { type: 'success', value: a }
+}
+
+function chain(f) {
+	return (a) => {
+		if (a.type === 'error') return a
+		return f(a)
+	}
+}
+
+flow(of(a), chain(f1), chain(f2), chain(f3))
 either(a).chain(f1).chain(f2).chain(f3)
 ```
 
