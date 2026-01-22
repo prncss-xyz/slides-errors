@@ -1,17 +1,21 @@
+---
+lang: fr
+---
+
 # Quitter le chemin du bonheur: toutes ces choses que nous appellons « erreur »
 
 ## Qui suis-je
 
 - Juliette Lamarche
-- Poétesse et bachelière es mathématiques devenue cuisinière deveneue développeuse
+- Poétesse et bachelière es mathématiques devenue cuisinière devenue développeuse
 - Dev Front-End (React et TypeScript) à la Banque Nationale du Canada via Go Rock IT.
 
 ![LinkedIn](./linkedin-qr.png)
 
 ## Résumé
 
-- il m'est souvent arriver d'essayer de faire de la gestion d'erreurs sans intention réelle
-- vécu des discussion qui tournaient en rond car notion faussement évidente
+- il m'est souvent arrivé d'essayer de faire de la gestion d'erreurs sans intention réelle
+- vécue des discussions qui tournaient en rond, car notion faussement évidente
 
 Je vais 3 notions distinctes d'erreurs.
 
@@ -19,9 +23,9 @@ Je vais 3 notions distinctes d'erreurs.
 
 ![I'm sorry](https://images5.fanpop.com/image/photos/26400000/Love-means-never-having-to-say-you-re-sorry-love-story-the-movie-26452763-500-230.gif)
 
-Une erreure inattendue survient lorqu'on détecte un état dans lequel un programme ne devrait pas se retrouver. Une erreure inattendue doit être réparée en modifiant le programme.
+Une erreur inattendue survient lorsqu'on détecte un état dans lequel un programme ne devrait pas se retrouver. Une erreur inattendue doit être réparée en modifiant le programme.
 
-Typiquement se présente comme une expection.
+Typiquement se présente comme une exception.
 
 Le moteur JavaScript peu en émettre
 
@@ -30,7 +34,7 @@ Le moteur JavaScript peu en émettre
 
 ## Instruction d'assertion (Code Assertion)
 
-- une propriété qu'on pense être vraie
+- une propriété qu'on pense être vrai
 - commentaire vs assertion
 
 ```typescript
@@ -43,17 +47,17 @@ if (x > y) throw new Error('x should be greater than y')
 
 En l'absence d'assertion :
 
-- un état abhérent va éventuellement mener à un comportement imprévu
-- bug intermittant, difficile à reproduire
+- un état aberrant va éventuellement mener à un comportement imprévu
+- bug intermittent, difficile à reproduire
 - distance entre la cause et l'effet
 - risque de sécurité
 
 ### Quoi faire avec une erreur inattendue
 
 - planter l'application
-- vs modifier le code pour corriger ou accepter la donnée abhérente
+- vs modifier le code pour corriger ou accepter la donnée abberrante
   - complexité peut se propager en amont
-  - mettre des ressources sur quelquechose qui apporte peu de valeur et va causer pleins d'autres erreurs en aval
+  - mettre des ressources sur quelque chose qui apporte peu de valeur et va causer pleins d'autres erreurs en aval
   - fail fast
 - monitoring
 - compartimenter (react error boundary), repartir la composante (erlang)
@@ -87,16 +91,16 @@ isoAssert(x > y, 'x should be greater than y')
 ## Pourquoi on a des erreurs inattendues
 
 - le système de type a ses limites
-  - typescript: la somme de deux nombre entiers est un nombre entier
+  - TypeScript: la somme de deux nombres entiers est un nombre entier
 - pas souhaitable de pousser le système de types à ses limites
   - coût
   - maintenabilité, lisibilité
-- dans des systèmes très critiques, on utilise un assistant de preuve (Lean, Coq) pour prouver des propriétées du code (pas pour les mortels)
+- dans des systèmes très critiques, on utilise un assistant de preuve (Lean, Coq) pour prouver des propriétés du code (pas pour les mortels)
 
 ## Comment les éviter
 
 - les assertions sont parfois le symptôme d'une mauvaise modélisation
-- chercher un état imposssible est une manière de trouver et communiquer les lacunes d'une modélisation
+- chercher un état impossible est une manière de trouver et communiquer les lacunes d'une modélisation
 
 ### Rendre irreprésentable les états impossibles
 
@@ -121,7 +125,7 @@ isoAssert(x > y, 'x should be greater than y')
 }
 ```
 
-Pas toujours possibles:
+Pas toujours possible:
 
 - les requis évoluent et la refactorisation ne vaudrait pas l'effort
 - données dénormalisées
@@ -141,7 +145,7 @@ Pas toujours possibles:
 
 ## Erreurs concrètes que j'ai attrapé
 
-- une fonction devait avoir la même référence à deux endroits, j'employais une dépendance ordinaire au lieu d'une peer dependancy
+- une fonction devait avoir la même référence à deux endroits, j'employais une dépendance ordinaire au lieu d'une peer dependency
 
 ## Erreurs attendues (Expected Errors)
 
@@ -211,11 +215,11 @@ graph TD;
 
 Côté serveur, on a une séquence d'actions qui s'interrompt au premier échec.
 
-**Séquence**: On veut être capable de combiner une séquence d'opération avec une potentiel d'erreur sans avoir à gérer manuellement l'échec d'une erreur précédente à chaque fois.
+**Séquence**: On veut être capable de combiner une séquence d'opération avec un potentiel d'erreur sans avoir à gérer manuellement l'échec d'une erreur précédente à chaque fois.
 
-**Information**: On veut garder une identité distincte pour chaque erreur, et possiblement lui associer d'autre information (par exemble la collection dont fait partie le gif auquel je n'ai pas accès)
+**Information**: On veut garder une identité distincte pour chaque erreur, et possiblement lui associer d'autre information (par exemple la collection dont fait partie le gif auquel je n'ai pas accès)
 
-**Exhaustivité**: On veut être capable de garantir par les types que tous les sortes d'erreurs possibles sont gérés.
+**Exhaustivité**: On veut être capable de garantir par les types que toutes les sortes d'erreurs possibles sont gérées.
 
 **Sérialisabilité**: On veut être capable d'envoyer l'erreur serveur au client sans transformation manuelle.
 
@@ -226,21 +230,21 @@ Ces requis ne sont pas toujours nécessaires.
 ### L'erreur comme une autre valeur
 
 - valeur impossible: `findIndex`, -1
-  - bonus: rend des états abhérents impossibles à représenter
-  - courrant en C ou Go (décrit directement la représentation en mémoire)
+  - bonus: rend des états aberrant impossibles à représenter
+  - courant en C ou Go (décrit directement la représentation en mémoire)
   - typage le plus simple
-  - signification non standard
-- valeur spéciale: `undefined` , `null`, `NaN`
+  - signification non-standard
+- valeur spéciale: `undefined`, `null`, `NaN`
 - instances de la classe erreur
   - distinguer les types d'erreur
-  - ajouter de l'infromation qualitative
+  - ajouter de l'information qualitative
     - ex.: le nom du fichier manquant
 
-- sérializable: null 
+- sérialisable: null
 - non-sérialisable: la classe d'erreur et `undefined`
 - imbrication (succès dans une erreur): aucune
 
-Séquence: extraire dans une fonction auxilière
+Séquence: extraire dans une fonction auxiliaire
 
 ```typescript
 function sequence(a) {
@@ -300,10 +304,9 @@ function sequence(a) {
 ```
 
 - type du résultat:
-    - chaque type d'erreur, le type du succès
-    - possible de garantir par le typage que toutes les erreurs ont étées gérées
+  - chaque type d'erreur, le type du succès
+  - possible de garantir par le typage que toutes les erreurs ont été géré
 - zod safeParse
-
 
 ```typescript
 either(a).chain(f1).chain(f2).chain(f3)
